@@ -1,0 +1,317 @@
+/* This is only the implementation of consolidation algorithm. This cannot run stand-alone without other files on packae fat.tree*/
+
+package fat.tree;
+
+/**
+ *
+ * @author Janani
+ */
+
+import java.io.*;
+import java.util.Scanner;
+
+public class TotalConsolidation {
+   
+    public static void main(String[] args) throws IOException
+    {
+
+        FileReader file = new FileReader("textFile.txt");
+        FileReader file2 = new FileReader("sample2.txt");
+        FileReader file3 = new FileReader("sample3.txt");
+        FileReader file4 = new FileReader("sample4.txt");
+        int K;
+        double A;
+        int maxPMsize;
+        int minVMsize;
+        int VMnumbers;
+        Scanner input2 = new Scanner(file2);
+        Scanner input3 = new Scanner(file3);
+        Scanner input4 = new Scanner(file4);
+        K = input2.nextInt();
+        A = input2.nextInt();
+        maxPMsize = input2.nextInt();
+        minVMsize = input2.nextInt();
+        VMnumbers = input2.nextInt();
+//        System.out.print(K + " "+A + " "+ maxPMsize+" "+minVMsize+" "+VMnumbers);
+//        System.out.println();
+        int [] integers = new int [3];
+        Integer PM[][] = new Integer[(int)A][(maxPMsize/minVMsize)]; // PM locations which hold copies of VMs only
+        Integer InitialPM[][]= new Integer[(int)A][(maxPMsize/minVMsize)];// PMs which hold Original VMs as well as copies
+        Integer FixedInitialPM[][]= new Integer[(int)A][(maxPMsize/minVMsize)];//PMs which hold original VMs
+        int [] PMsize = new int [(int)A];
+        int [] VMsize = new int [VMnumbers];
+
+        int index ;
+        try {
+            Scanner input = new Scanner(file);
+            while(input.hasNext()){
+              int i=0;
+              while(i!=3){
+                  integers[i] = input.nextInt();
+                  i++;
+              }
+              if(integers[2]==1){
+                  index = FatTreeGreedy.search3(PM,((integers[1])-VMnumbers));
+                  PM[(integers[1])-VMnumbers][index] = integers[0];
+              }  
+            }
+            input.close();
+           
+            int j =0;
+            int index2=0;
+            int check;
+         // Entering the original VMs ids on to their respective PMs
+            while(input2.hasNext()){
+            check = input2.nextInt();
+               
+              while(check!=1000){
+                  FixedInitialPM[j][index2]=InitialPM[j][index2] = check;
+                  index2++;
+                  check = input2.nextInt();
+              }
+            j++;
+            index2=0;
+             }
+             input2.close();
+         
+       // set PMs size
+        for ( int i = 0; i < A; i++){
+            PMsize[i] = input3.nextInt();
+        }
+       // set VMs size
+        for ( int i = 0; i < VMnumbers; i++){
+            VMsize[i] = input3.nextInt();
+        }
+         input3.close();   
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        //Print the VMs that sit on differnt PMs/servers
+        for ( int i = 0; i < (int)A; i++){
+            System.out.print("VMs on PM with ID number "+i+": ");
+            for ( int j = 0; j < (maxPMsize/minVMsize); j++){
+                if(PM[i][j]!= null){
+                System.out.print(PM[i][j]+" ");
+              
+                }
+            }
+        System.out.println();
+     
+        }
+        System.out.println();
+      
+        //LIST of PMs/servers that hold a original copy of VM only
+      for ( int i = 0; i < (int)A; i++){
+            System.out.print("Original VMs on PM with ID number "+i+": ");
+            for ( int j = 0; j < (maxPMsize/minVMsize); j++){
+                if(FixedInitialPM[i][j]!= null){
+                System.out.print(FixedInitialPM[i][j]+" ");
+              
+                }
+            }
+        System.out.println();
+     
+        }
+      System.out.println("VMs' size respectively:");
+        for ( int i = 0; i < VMnumbers; i++){
+            System.out.print(VMsize[i]+" ");
+       }
+        System.out.println();
+         System.out.println("PMs' size respectively:");
+        for ( int i = 0; i < A; i++){
+            System.out.print(PMsize[i]+" ");
+        }
+        System.out.println();
+       
+        // combining originals and copies VMs arrays
+        int vacant;
+        for ( int i = 0; i < A; i++){
+        vacant=FatTreeGreedy.search3(InitialPM,i);
+        int j=0;
+        
+        while(j<30 && PM[i][j]!=null){
+            if (vacant < 30) //each server is assumed to have a capacity of 30 that is could hold 30VM
+            {
+           //  System.out.println("value of i && j && vacant "+i+"      " + j+ "            " + vacant);
+        InitialPM[i][vacant] = PM[i][j];
+        vacant++;
+        j++;
+        }
+        }}
+        // Calculating the free space of each PM
+        
+        System.out.println();
+        int [] freeSpace = new int [(int)A];
+        for ( int i = 0; i < (int)A; i++){
+            System.out.print("Free space of PM with ID number "+i+": ");
+            int assignedSpace = 0;
+            for ( int j = 0; j < (maxPMsize/minVMsize); j++){
+                if(InitialPM[i][j]!= null){
+                 assignedSpace =   assignedSpace + VMsize[InitialPM[i][j]];
+              
+                }
+            }
+        freeSpace[i] = PMsize[i] - assignedSpace;
+        System.out.println(freeSpace[i]);
+     
+        } 
+               
+        System.out.println();
+        // All VMs on PMs
+       for ( int i = 0; i < (int)A; i++){
+            System.out.print("All VMs on PM with ID number "+i+": ");
+            for ( int j = 0; j < (maxPMsize/minVMsize); j++){
+                if(InitialPM[i][j]!= null){
+                System.out.print(InitialPM[i][j]+" ");
+              
+                }
+            }
+        System.out.println();
+     
+        }
+      
+       //Getting the cost array from FatTree class
+       Integer cost[][] = new Integer[(int)A][(int)A];
+       for ( int i = 0; i < A; i++){
+            for ( int j = 0; j < A; j++){
+                cost[i][j]= input4.nextInt();
+            }
+        }
+      
+       input4.close();
+      
+       // check how many active PM we have
+       int activePM = 0;
+       for ( int i = 0; i < (int)A; i++){
+           if(InitialPM[i][0]!= null){
+              activePM ++;
+           }
+       }
+       // Check where we have just one VM copy
+       int OriginalVMlocation;
+       int tryCost ;// Cost betwwen Original VM and its alone copy on a PM
+       int i;
+       int totalcostreduced =0;
+       int costreduced; // number of VMs that we moved on each PM that had less than 4 VMs
+       int x; // to check how many VMs we had on those PMs with less than 4 VMs
+       int w;
+//       Integer [] array = new Integer [VMnumbers];
+//       Integer [] array2 = new Integer [VMnumbers];
+//       Integer [] array3 = new Integer [VMnumbers];
+outer: for ( i = 0; i < (int)A ; i++){
+    System.out.println("physical machine number is "+i+": ");
+           w=0;
+           costreduced =0;
+           x=0;
+        // Process PMs that have one or more VM copies
+           if(FixedInitialPM[i][0]== null && PM[i][0]!= null)
+           { 
+  firstline:  while(w<30 && PM[i][w]!= null ){
+                System.out.println("Virtual machine number is "+w+": " + "IS:    " + PM[i][w]);
+                x++;
+             // search to find the location(PM) of original VM of that VM copy
+            
+              OriginalVMlocation = FatTreeGreedy.search4(FixedInitialPM,PM[i][w]);
+              
+              tryCost = cost[i][OriginalVMlocation];
+              for( int j = 0; j < (int)A; j++){
+                 if(cost[OriginalVMlocation][j]== tryCost){                           // finding other PMs with same cost on the data center network
+                   System.out.println("Selected Physical machine with the same cost..... "+j);
+                     if(InitialPM[j][0]!= null){ 
+                         System.out.println("Selected Physical which is not off..... "+j);//check if selected PM is not turned off already
+                        if(VMsize[PM[i][w]] <= freeSpace[j]){                         // Check if there is enough space in the selected PM
+                         System.out.println("Selected Physycal has free space..... "+j);
+                            if(!(FatTreeGreedy.search2(InitialPM,PM[i][w],j))){         // Check to make sure the selected VM is not already placed on that PM
+                             System.out.println("Selected Physycal doesnt have this VM..... "+j);
+                                index = FatTreeGreedy.search3(InitialPM,j); 
+                                if (index < 30){
+                             InitialPM[j][index] = PM[i][w];                          // replacing the alone VM copy to the new PM of finalized PM
+                             index = FatTreeGreedy.search3(PM,j);                     // finding the first vacant index on the PM
+                             PM[j][index] = PM[i][w]; 
+                                
+// repalcing the alone VM copy to the new PM
+//                             array[costreduced]=PM[i][w];
+//                             array2[costreduced]=i;
+//                             array3[costreduced]=j;
+                             PM[i][w]=InitialPM[i][w] = null;                         // Removing from its old location or clearing the location
+                            
+                             costreduced ++;
+                             System.out.println("Final Selected Physical machine for moving is..... "+j);
+                              
+                   //            System.out.println("Next virtual machine selected for working on is..... "+w);
+                             break;
+                                } 
+                          }
+
+                        }
+                    }
+                 }
+              }
+              w++; 
+              }
+   System.out.println("The number of VM of the " + i + "th physical machine is "+x);
+  if (costreduced==x){totalcostreduced++;}
+            }     
+        }
+       System.out.println();
+       for ( i = 0; i < (int)A; i++){
+            System.out.print("All VMs (after consolidation) on PM with ID number "+i+": ");
+            for ( int j = 0; j < (maxPMsize/minVMsize); j++){
+                if(InitialPM[i][j]!= null){
+                System.out.print(InitialPM[i][j]+" ");
+              
+                }
+            }
+        System.out.println();
+       }
+      
+           //Transfering Cost from Original VMs to their copies location.
+//     int OriginalVM;
+//     int CopyVM[]=new int [K-1];
+//     int VMCopyCost[]=new int [VMnumbers];
+//     int TotalCost = 0 ;
+//     for (i=0 ; i<VMnumbers; i++){
+//         OriginalVM = FatTreeGreedy.search4(FixedInitialPM,i);// search to find the location(PM) of original VM
+//         CopyVM = FatTreeGreedy.search5(InitialPM,i,K,OriginalVM);
+//         for (int j=0 ; j <K-1; j++){          // Cost for transfering copies of each VM
+//            VMCopyCost[i] = VMCopyCost[i] + ((cost[OriginalVM][CopyVM[j]])*(VMsize[i]));
+//         }
+//     }
+     // Total Cost
+//     System.out.println();
+//     for (i=0 ; i<VMnumbers; i++){
+//         TotalCost = TotalCost + VMCopyCost[i];
+//     }
+//     System.out.print("Total Cost for placing all VM copies before consolidation:");
+//     System.out.println(TotalCost);
+     System.out.print("Number of active PMs :");
+     System.out.println(activePM);
+     System.out.print("Number of PMs that we turned off after consolidation :");
+     System.out.println(totalcostreduced);
+//     System.out.print("Moved VMs after consolidation :");
+//     fo+r(i=0 ; i< VMnumbers;i++){
+//      if(array[i]!= null){  
+//     System.out.print(array[i]+ "  ");
+//      }
+//      }
+//     System.out.println();
+//     System.out.print("Off PMs after consolidation :");
+//     for(i=0 ; i< VMnumbers;i++){
+//      if(array2[i]!= null){  
+//     System.out.print(array2[i]+ "  ");
+//      }
+//      }
+//     System.out.println();
+//     System.out.print("new PMs after consolidation :");
+//     for(i=0 ; i< VMnumbers;i++){
+//      if(array3[i]!= null){  
+//     System.out.print(array3[i]+ "  ");
+//      }
+//      }
+     System.out.println();
+       
+    }
+   
+}
