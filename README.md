@@ -1,4 +1,4 @@
-# Data-Center-Consolidation
+# Effecient Data-Center-Consolidation algorithm (Java)
 	
   # Implemented a consolidation algorithm that deploys redundant virtual machines on different servers across the datacenter in anticipation of host server failure
   # Reduces power consumption in Data Center environment by 25% by turning off inessential physical servers while also ensuring minimum cost flow in the network.
